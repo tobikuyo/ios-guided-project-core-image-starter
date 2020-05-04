@@ -14,7 +14,12 @@ class PhotoFilterViewController: UIViewController {
 
     // MARK: Properties
 
-    private var originalImage: UIImage?
+    private var originalImage: UIImage? {
+        didSet {
+            updateViews()
+        }
+    }
+
     private var context = CIContext(options: nil)
 
     // MARK: - View Lifecycle
@@ -25,9 +30,20 @@ class PhotoFilterViewController: UIViewController {
         let filter = CIFilter.colorControls()
         print(filter)
         print(filter.attributes)
+
+        // Test the Filter Quickly
+        originalImage = imageView.image
 	}
 
     // MARK: Actions
+
+    func updateViews() {
+        if let originalImage = originalImage {
+            imageView.image = filterImage(originalImage)
+        } else {
+            imageView.image = nil
+        }
+    }
 
     func filterImage(_ image: UIImage) -> UIImage? {
 
@@ -66,15 +82,15 @@ class PhotoFilterViewController: UIViewController {
 	// MARK: Slider events
 	
 	@IBAction func brightnessChanged(_ sender: UISlider) {
-
+        updateViews()
 	}
 	
 	@IBAction func contrastChanged(_ sender: Any) {
-
+        updateViews()
 	}
 	
 	@IBAction func saturationChanged(_ sender: Any) {
-
+        updateViews()
 	}
 }
 
