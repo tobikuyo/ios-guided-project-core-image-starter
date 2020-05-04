@@ -5,17 +5,19 @@ import Photos
 
 class PhotoFilterViewController: UIViewController {
 
-    // MARK: - Outlets
+    // MARK: Outlets
 
 	@IBOutlet weak var brightnessSlider: UISlider!
 	@IBOutlet weak var contrastSlider: UISlider!
 	@IBOutlet weak var saturationSlider: UISlider!
 	@IBOutlet weak var imageView: UIImageView!
 
-    // MARK: - Properties
+    // MARK: Properties
 
     private var originalImage: UIImage?
     private var context = CIContext(options: nil)
+
+    // MARK: - View Lifecycle
 	
 	override func viewDidLoad() {
 		super.viewDidLoad()
@@ -25,11 +27,20 @@ class PhotoFilterViewController: UIViewController {
         print(filter.attributes)
 	}
 
+    // MARK: Actions
+
     func filterImage(_ image: UIImage) -> UIImage? {
 
         // UIIMAGE -> CGIMAGE (Core Graphics) -> CIImage (Core Image)
+        guard let cgImage = image.cgImage else { return nil }
+        let ciImage = CIImage(cgImage: cgImage)
 
-        // Filter
+        // Filter = recipe
+        let filter = CIFilter.colorControls()
+        filter.inputImage = ciImage
+        filter.brightness = brightnessSlider.value
+        filter.contrast = contrastSlider.value
+        filter.saturation = saturationSlider.value 
 
         // Render the Image
 
@@ -38,7 +49,7 @@ class PhotoFilterViewController: UIViewController {
         return nil
     }
 	
-	// MARK: Actions
+	// MARK: IBActions
 	
 	@IBAction func choosePhotoButtonPressed(_ sender: Any) {
 		// TODO: show the photo picker so we can choose on-device photos
