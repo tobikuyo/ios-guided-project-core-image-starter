@@ -40,13 +40,15 @@ class PhotoFilterViewController: UIViewController {
         filter.inputImage = ciImage
         filter.brightness = brightnessSlider.value
         filter.contrast = contrastSlider.value
-        filter.saturation = saturationSlider.value 
+        filter.saturation = saturationSlider.value
 
         // Render the Image
+        guard let outputCIImage = filter.outputImage else { return nil }
+        guard let outputCGImage = context.createCGImage(outputCIImage,
+                                                        from: CGRect(origin: .zero, size: image.size)) else { return nil }
 
         // CIImage -> CGImage -> UIImage
-
-        return nil
+        return UIImage(cgImage: outputCGImage)
     }
 	
 	// MARK: IBActions
