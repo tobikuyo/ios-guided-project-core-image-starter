@@ -16,6 +16,25 @@ class PhotoFilterViewController: UIViewController {
 
     private var originalImage: UIImage? {
         didSet {
+            // Resize a scaledImage any time this property is set, so that the UI can update
+            // faster with a "live preview"
+            guard let originalImage = originalImage else { return }
+
+            var scaledSize = imageView.bounds.size
+            let scale = UIScreen.main.scale // 1x (no modern iPhones) 2x 3x
+
+            print("image size: \(originalImage.size)")
+            print("size: \(scaledSize)")
+            print("scaled: \(scale)")
+
+            // How many pixels can we fit on the screen?
+            scaledSize = CGSize(width: scaledSize.width * scale, height: scaledSize.height * scale)
+            scaledImage = originalImage.imageByScaling(toSize: scaledSize)
+        }
+    }
+
+    private var scaledImage: UIImage? {
+        didSet {
             updateViews()
         }
     }
@@ -62,35 +81,60 @@ class PhotoFilterViewController: UIViewController {
         guard let outputCIImage = filter.outputImage else { return nil }
         guard let outputCGImage = context.createCGImage(outputCIImage,
                                                         from: CGRect(origin: .zero, size: image.size)) else { return nil }
-
         // CIImage -> CGImage -> UIImage
         return UIImage(cgImage: outputCGImage)
+    }
+
+    private func presentImagePickerController() {
+        guard UIImagePickerController.isSourceTypeAvailable(.photoLibrary) else {
+            print("Error: The photo library is not available")
+            return
+        }
+        let imagePicker = UIImagePickerController()
+        imagePicker.sourceType = .photoLibrary
+        imagePicker.delegate = self
+        present(imagePicker, animated: true, completion: nil)
     }
 	
 	// MARK: IBActions
 	
 	@IBAction func choosePhotoButtonPressed(_ sender: Any) {
-		// TODO: show the photo picker so we can choose on-device photos
-		// UIImagePickerController + Delegate
+        presentImagePickerController()
+
 	}
 	
 	@IBAction func savePhotoButtonPressed(_ sender: UIButton) {
 		// TODO: Save to photo library
 	}
-	
 
 	// MARK: Slider events
 	
-	@IBAction func brightnessChanged(_ sender: UISlider) {
+    @IBAction func brightnessChanged(_ sender: UISlider) {
         updateViews()
-	}
-	
-	@IBAction func contrastChanged(_ sender: Any) {
+    }
+
+    @IBAction func contrastChanged(_ sender: Any) {
         updateViews()
-	}
-	
-	@IBAction func saturationChanged(_ sender: Any) {
+    }
+
+    @IBAction func saturationChanged(_ sender: Any) {
         updateViews()
-	}
+    }
 }
 
+extension PhotoFilterViewController: UIImagePickerControllerDelegate {
+
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let image = info[.originalImage] as? UIImage {
+            originalImage = image
+        }
+        picker.dismiss(animated: true)
+    }
+
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true)
+    }
+}
+
+extension PhotoFilterViewController: UINavigationControllerDelegate {
+}
